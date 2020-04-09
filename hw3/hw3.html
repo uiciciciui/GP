@@ -1,0 +1,211 @@
+<html><head>
+<style>
+#info {
+  position: absolute;
+  top: 2%;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  color: #ffff00
+}
+body {
+  overflow: hidden
+}
+</style>
+</head>
+
+<body> 
+	<div id="info">
+  <br> Homework 3 <br>
+    <button id="mybutton" style="position:absolute">
+	  change
+   </button>
+</div>
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+	<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/MTLLoader.js"></script>
+	<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/loaders/OBJLoader.js"></script>
+
+<script>
+
+var renderer, camera, controls, scene;
+var angle;
+var howlong;
+var speed;
+var street;
+var man;
+var train;
+var  bar = [];
+var dontmove = false;
+
+$("#mybutton").click(function() {
+	dontmove = !dontmove;
+	console.log(dontmove);
+});
+
+init();
+animate();
+
+function traingogo(){
+	if(street == 1){
+		man.position.x -= speed;
+		//console.log (man.position.x)
+		if(man.position.x == -50){
+			street = 0;
+			//console.log (man.position)
+		}
+	}
+	else if(street == 0){
+		angle = angle + 0.01;  // radian
+		man.rotation.y = angle;
+		man.position.x = man.position.x + -0.5*Math.cos(angle);
+		man.position.z = man.position.z + 0.5*Math.sin(angle);
+		//console.log (man.position)
+		if(man.position.x > -50){
+			street = -1;
+			man.position.set(-50,0,50);
+			//console.log (man.position);
+		}
+	}
+	else if(street == -1){
+		man.position.x += speed;
+		//console.log (man.position.x)
+		if(man.position.x == 50){
+			street = 3;
+			//console.log (man.position)
+		}
+	}
+	else if(street == 3){
+		angle = angle + 0.01;  // radian
+		man.rotation.y = angle;
+		man.position.x = man.position.x + -0.5*Math.cos(angle);
+		man.position.z = man.position.z + 0.5*Math.sin(angle);
+		//console.log (man.position)
+		if(man.position.x < 50){
+			street = 1;
+			man.position.set(50,0,-50);
+			//console.log (man.position);
+			}
+	}
+};
+
+function buildman(){
+  var body = new THREE.Object3D();
+
+	let boxGeometry;
+	boxGeometry = new THREE.BoxGeometry(6, 20, 10);
+  let torso = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  torso.position.set(0, 30, 0);
+  body.add(torso);
+
+  let head
+  boxGeometry = new THREE.BoxGeometry(10, 8, 10);
+  head = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  head.position.set(0,42,0)
+  body.add(head);
+  
+  let arm;
+  RArm = new THREE.Object3D();
+  boxGeometry = new THREE.BoxGeometry(6, 18, 5);
+  arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  RArm.add(arm);
+  arm.position.set(0, 9, -3);
+  body.add(RArm);
+  RArm.position.set(0, 20, -5);
+  
+  LArm = new THREE.Object3D();
+  boxGeometry = new THREE.BoxGeometry(6, 18, 5);
+  arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  LArm.add(arm);
+  arm.position.set(0, 9, 3);
+  body.add(LArm);
+  LArm.position.set(0, 20, 5);
+
+  let leg;
+  Rleg = new THREE.Object3D();
+  boxGeometry = new THREE.BoxGeometry(6, 20, 5);
+  leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  Rleg.add(leg);
+  leg.position.set(0, 14, -2);
+  body.add(Rleg);
+  
+  Lleg = new THREE.Object3D();
+  boxGeometry = new THREE.BoxGeometry(6, 20, 5);
+  leg = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  Lleg.add(leg);
+  leg.position.set(0, 14, 2);
+  body.add(Lleg);
+  
+	return body;
+};
+
+
+function init() {
+	renderer = new THREE.WebGLRenderer({
+	  antialias: true
+	});
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.setClearColor(0x888888);
+	document.body.appendChild(renderer.domElement);
+	camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
+	camera.position.z = 50;  // important
+	camera.position.y = 150;
+	
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+	scene = new THREE.Scene();
+	
+	var ambient = new THREE.AmbientLight(0x444444);
+  scene.add(ambient);
+
+  var directionalLight = new THREE.DirectionalLight(0xffffff);
+  directionalLight.position.set(0, 1, 1).normalize();
+  scene.add(directionalLight);
+	  
+	let gridXZ = new THREE.GridHelper(200, 10, 'red', 'white');
+	scene.add(gridXZ);
+
+	let axes = new THREE.AxisHelper (10);
+	scene.add (axes);
+	
+	var geometry = new THREE.Geometry();
+    geometry.vertices.push (
+ new THREE.Vector3 ( -250,0,0),
+ new THREE.Vector3 (  250,0,0),
+ new THREE.Vector3 ( 250,500,0),
+ new THREE.Vector3 (-250,500,0)
+ );
+
+	angle = 0;
+	street = 1;
+	speed = 1;
+
+	man = buildman();
+	buildman();
+	man.position.set(50,0,-50);
+	scene.add(man);
+	
+}
+
+function animate() {
+  controls.update();
+  renderer.render (scene, camera);
+  if(dontmove == false){
+	traingogo();
+  }
+  
+  //console.log(man.position);
+  requestAnimationFrame (animate);
+  render();
+}
+
+function render() {
+  
+  renderer.render(scene, camera);
+
+}
+</script><div><canvas width="1920" height="950" style="width: 1536px; height: 760px;"></canvas></div>
+
+
+
+</body></html>
